@@ -1,55 +1,63 @@
+section .bss
+	name resb 100
+
 section .data
-    prompt db 'Enter your name: ', 0
-    result db 'Result: ', 0
-    buffer times 50 db 0
+	prompt db "Enter Your Name: ", 0
+	prompt_len equ $ - prompt
+
+	newline db 0xA
+	newline_len equ $ - newline
 
 section .text
-    global _start
+	global _start
 
 _start:
-    ; Print prompt
-    mov eax, 4
-    mov ebx, 1
-    mov ecx, prompt
-    mov edx, 16
-    int 0x80
+	mov eax, 4
+	mov ebx, 1
+	mov ecx, prompt
+	mov edx, prompt_len
+	int 0x80
 
-    ; Read input
-    mov eax, 3
-    mov ebx, 0
-    mov ecx, buffer
-    mov edx, 50
-    int 0x80
+	mov eax, 3
+	mov ebx, 0
+	mov ecx, name
+	mov edx, 100
+	int 0x80
+	mov esi, eax
 
-    ; Convert to uppercase
-    mov esi, buffer
-loop:
-    mov al, [esi]
-    cmp al, 0
-    je done
-    cmp al, 'a'
-    jl skip
-    cmp al, 'z'
-    jg skip
-    sub al, 32
-    mov [esi], al
+	mov ecx, 0
+
+convert_loop:
+	cmp ecx, esi
+	jge done_convert
+
+	mov al, [name + ecx]
+	cmp al, 'a'
+	jl skip
+	cmp al, 'z'
+	jg skip
+	sub al, 32
+	mov [name + ecx], al
+
 skip:
-    inc esi
-    jmp loop
+	inc ecx
+	jmp convert_loop
 
-done:
-    ; Print result
-    mov eax, 4
-    mov ebx, 1
-    mov ecx, result
-    mov edx, 8
-    int 0x80
+done_convert:
+	
+	mov eax, 4
+	mov ebx, 1
+	mov ecx, newline
+	mov edx, newline_len
+	int 0x80
 
-    mov eax, 4
-    mov ebx, 1
-    mov ecx, buffer
-    int 0x80
+	mov eax, 4
+	mov ebx, 1
+	mov ecx, name
+	mov edx, esi
+	int 0x80
 
-    ; Exit
-    mov eax, 1
-    int 0x80
+	mov eax, 1
+	xor ebx, ebx
+	int 0x80
+
